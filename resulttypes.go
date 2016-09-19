@@ -122,8 +122,8 @@ type ChannelUnarchiveResult struct {
 // details about the Slack you're about to start receiving streaming events for.
 type RTMStartResult struct {
 	APIResult
-	URL  string
-	Self UserBrief
+	URL      string
+	Self     UserBrief
 	Team     TeamSummary
 	Users    []UserSummary
 	Channels []ChannelSummary
@@ -132,4 +132,3 @@ type RTMStartResult struct {
 	IMs      []IMFull
 	Bots     interface{} // Not documented...
 }
-
