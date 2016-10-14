@@ -5,18 +5,10 @@ import "net/url"
 import "fmt"
 import "bytes"
 import "encoding/json"
-import "github.com/gorilla/websocket"
 
 type Slack struct {
 	token         string
 	userNameCache map[UserId]string
-}
-
-type SlackRTM struct {
-	slack *Slack
-	id    uint64
-	ws    *websocket.Conn
-	Rx    chan *RTMMessage
 }
 
 func New(token string) (s *Slack) {
