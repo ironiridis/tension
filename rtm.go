@@ -1,6 +1,7 @@
 package tension
 
 import "fmt"
+import "github.com/gorilla/websocket"
 
 // RTMStart request a special Websocket URL plus a ton of anciliary information
 // about the Slack instance we'll be talking to.
@@ -25,5 +26,47 @@ func (s *Slack) RTMStart(simpleLatest, noUnreads bool) (res *RTMStartResult, err
 	if res.Ok == false {
 		err = fmt.Errorf("Slack API error: %s", res.ErrorMsg)
 	}
+
+	return
+}
+
+type RTMMessage interface{}
+
+func (rtm *SlackRTM) rtmrxloop() {
+	defer close(rtm.Rx)
+	for {
+		var msg RTMMessage
+		err := rtm.ws.ReadJSON(msg)
+		if err != nil {
+			return
+		}
+		rtm.Rx <- msg
+	}
+}
+
+func (rsr *RTMStartResult) Dial() (rtm *SlackRTM, err error) {
+	rtm = &SlackRTM{Rx: make(chan RTMMessage)}
+	d := &websocket.Dialer{}
+	rtm.ws, _, err = d.Dial(rsr.URL, nil)
+	go rtm.rtmrxloop()
+	return
+}
+
+type RTMSendMessageRequest struct {
+	Id      uint64 `json:"id"`
+	Type    string `json:"type"`
+	Channel string `json:"channel"`
+	Text    string `json:"text"`
+}
+
+func (rtm *SlackRTM) SendMessage(dest, text string) (err error) {
+	rtm.id++
+	req := &RTMSendMessageRequest{
+		Id:      rtm.id,
+		Type:    "message",
+		Channel: dest,
+		Text:    text,
+	}
+	err = rtm.ws.WriteJSON(req)
 	return
 }
