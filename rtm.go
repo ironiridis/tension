@@ -1,7 +1,11 @@
 package tension
 
-import "fmt"
-import "github.com/gorilla/websocket"
+import (
+	"fmt"
+	"log"
+
+	"github.com/gorilla/websocket"
+)
 
 // RTMStart request a special Websocket URL plus a ton of anciliary information
 // about the Slack instance we'll be talking to.
@@ -30,14 +34,21 @@ func (s *Slack) RTMStart(simpleLatest, noUnreads bool) (res *RTMStartResult, err
 	return
 }
 
-type RTMMessage interface{}
+type RTMMessage struct {
+	Type    string
+	Ts      SlackTime
+	Channel string `json:",omitempty"`
+	User    string `json:",omitempty"`
+	Text    string `json:",omitempty"`
+}
 
 func (rtm *SlackRTM) rtmrxloop() {
 	defer close(rtm.Rx)
 	for {
-		var msg RTMMessage
+		msg := new(RTMMessage)
 		err := rtm.ws.ReadJSON(msg)
 		if err != nil {
+			log.Println(err)
 			return
 		}
 		rtm.Rx <- msg
@@ -45,7 +56,7 @@ func (rtm *SlackRTM) rtmrxloop() {
 }
 
 func (rsr *RTMStartResult) Dial() (rtm *SlackRTM, err error) {
-	rtm = &SlackRTM{Rx: make(chan RTMMessage)}
+	rtm = &SlackRTM{Rx: make(chan *RTMMessage)}
 	d := &websocket.Dialer{}
 	rtm.ws, _, err = d.Dial(rsr.URL, nil)
 	go rtm.rtmrxloop()

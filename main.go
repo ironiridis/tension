@@ -16,7 +16,7 @@ type SlackRTM struct {
 	slack *Slack
 	id    uint64
 	ws    *websocket.Conn
-	Rx    chan RTMMessage
+	Rx    chan *RTMMessage
 }
 
 func New(token string) (s *Slack) {
