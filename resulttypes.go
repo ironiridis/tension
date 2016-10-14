@@ -130,5 +130,4 @@ type RTMStartResult struct {
 	Groups   []GroupFull
 	MPIMs    []MPIMFull
 	IMs      []IMFull
-	Bots     interface{} // Not documented...
 }
